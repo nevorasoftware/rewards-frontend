@@ -12,6 +12,7 @@ import { Badge, EmptyState, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/
 import { api } from '@/lib/api';
 import type { AdminBusiness } from '@/lib/types';
 import { formatDate, formatNumber } from '@/lib/utils';
+import { CreateBusinessDialog } from './create-business-dialog';
 
 interface PlatformStats {
   businesses: number;
@@ -53,7 +54,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <PageHeader title="Negocios" description="Administra los negocios de la plataforma." />
+      <PageHeader title="Negocios" description="Administra los negocios de la plataforma." actions={<CreateBusinessDialog />} />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.data
           ? tiles.map((t) => (
