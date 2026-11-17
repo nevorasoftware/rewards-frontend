@@ -17,8 +17,8 @@ async function loadBusiness(slug: string): Promise<PublicBusiness | null> {
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const business = await loadBusiness(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const business = await loadBusiness((await params).slug);
   if (!business) return { title: 'Negocio no encontrado' };
   return {
     title: { absolute: `${business.program.cardTitle || business.name} · Únete` },
@@ -26,13 +26,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export async function generateViewport({ params }: { params: { slug: string } }): Promise<Viewport> {
-  const business = await loadBusiness(params.slug);
+export async function generateViewport({ params }: { params: Promise<{ slug: string }> }): Promise<Viewport> {
+  const business = await loadBusiness((await params).slug);
   return { themeColor: business?.backgroundColor ?? '#6d4aed' };
 }
 
-export default async function JoinPage({ params }: { params: { slug: string } }) {
-  const business = await loadBusiness(params.slug);
+export default async function JoinPage({ params }: { params: Promise<{ slug: string }> }) {
+  const business = await loadBusiness((await params).slug);
   if (!business) notFound();
   const { program } = business;
 

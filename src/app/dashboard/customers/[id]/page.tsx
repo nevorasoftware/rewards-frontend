@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Mail, Phone, SlidersHorizontal, Smartphone } from 'lucide-react';
 import Link from 'next/link';
-import { useState, type FormEvent } from 'react';
+import { use, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/app-shell';
 import { OwnerOnly } from '@/components/owner-only';
@@ -24,10 +24,10 @@ const TX_LABEL: Record<TransactionType, { label: string; variant: 'success' | 'd
   ADJUST: { label: 'Ajuste', variant: 'warning' },
 };
 
-export default function CustomerDetailPage({ params }: { params: { id: string } }) {
+export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <OwnerOnly>
-      <Detail id={params.id} />
+      <Detail id={use(params).id} />
     </OwnerOnly>
   );
 }
