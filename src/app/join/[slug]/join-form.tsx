@@ -19,15 +19,46 @@ export function JoinForm({ slug, businessName }: { slug: string; businessName: s
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<JoinResult | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     setPlatform(detectPlatform());
+    let saved: JoinResult | null = null;
     try {
-      const saved = localStorage.getItem(storageKey(slug));
-      if (saved) setResult(JSON.parse(saved) as JoinResult);
+      const raw = localStorage.getItem(storageKey(slug));
+      if (raw) saved = JSON.parse(raw) as JoinResult;
     } catch {
       /* ignore */
     }
+    if (!saved?.serialNumber) return;
+    // Wallet save links are short-lived and change with server config: only the
+    // serial is reused from storage, the links are always fetched fresh.
+    setRefreshing(true);
+    let cancelled = false;
+    api<JoinResult>(`/public/${encodeURIComponent(slug)}/cards/${encodeURIComponent(saved.serialNumber)}`, { auth: false })
+      .then((fresh) => {
+        if (cancelled) return;
+        setRefreshing(false);
+        setResult(fresh);
+        try {
+          localStorage.setItem(storageKey(slug), JSON.stringify(fresh));
+        } catch {
+          /* ignore */
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setRefreshing(false);
+        try {
+          localStorage.removeItem(storageKey(slug));
+        } catch {
+          /* ignore */
+        }
+        setResult(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   async function onSubmit(e: FormEvent) {
@@ -54,6 +85,14 @@ export function JoinForm({ slug, businessName }: { slug: string; businessName: s
     } finally {
       setLoading(false);
     }
+  }
+
+  if (refreshing) {
+    return (
+      <div className="mt-6 flex justify-center text-white/80" aria-live="polite">
+        <Loader2 className="h-6 w-6 animate-spin" aria-label="Cargando tu tarjeta" />
+      </div>
+    );
   }
 
   if (result) {
