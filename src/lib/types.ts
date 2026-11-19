@@ -217,7 +217,6 @@ export interface WalletNotification {
 export interface NotificationsOverview {
   settings: NotificationSettings;
   reachableCards: number;
-  googleConfigured: boolean;
   webPushConfigured: boolean;
   items: WalletNotification[];
 }

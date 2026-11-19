@@ -46,13 +46,13 @@ function Detail({ id }: { id: string }) {
       api<DirectNotificationResult>(`/notifications/customers/${id}`, { method: 'POST', body: input }),
     onSuccess: (r) => {
       if (r.delivered) {
-        const where = [r.googleSent ? 'Google Wallet' : null, r.appleSent ? 'Apple Wallet' : null, r.webSent ? 'avisos del navegador' : null]
+        const where = [r.webSent ? 'su teléfono' : null, r.appleSent ? 'Apple Wallet' : null]
           .filter(Boolean)
           .join(', ');
         toast.success('Mensaje enviado', { description: `Entregado en ${where}.` });
         setMessageOpen(false);
       } else {
-        toast.error('No se pudo entregar', { description: 'El cliente no tiene la tarjeta en su wallet ni avisos activados.' });
+        toast.error('No se pudo entregar', { description: 'El cliente no ha activado los avisos en su tarjeta.' });
       }
     },
     onError: (e) => toast.error(e.message),
@@ -87,7 +87,7 @@ function Detail({ id }: { id: string }) {
   if (query.isLoading) return <Skeleton className="h-96" />;
   if (query.isError) return <p className="text-destructive">{query.error.message}</p>;
   const customer = query.data!;
-  const reachable = customer.cards.some((c) => c.status === 'ACTIVE' && (c.googleObjectId || c._count.appleRegistrations > 0 || c._count.pushSubscriptions > 0));
+  const reachable = customer.cards.some((c) => c.status === 'ACTIVE' && (c._count.appleRegistrations > 0 || c._count.pushSubscriptions > 0));
 
   return (
     <>
@@ -111,7 +111,7 @@ function Detail({ id }: { id: string }) {
                 size="sm"
                 className="mt-2 w-full"
                 disabled={!reachable}
-                title={reachable ? undefined : 'El cliente no tiene la tarjeta en su wallet ni avisos activados'}
+                title={reachable ? undefined : 'El cliente no ha activado los avisos en su tarjeta'}
                 onClick={() => setMessageOpen(true)}
               >
                 <BellRing aria-hidden /> Enviar notificación
@@ -211,7 +211,7 @@ function Detail({ id }: { id: string }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Notificación para {customer.name}</DialogTitle>
-            <DialogDescription>Llega como aviso a su teléfono y queda guardada en su tarjeta.</DialogDescription>
+            <DialogDescription>Le llega como aviso emergente en su teléfono.</DialogDescription>
           </DialogHeader>
           <MessageForm
             idPrefix="direct"
