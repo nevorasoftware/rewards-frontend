@@ -1,6 +1,6 @@
 'use client';
 
-import { CreditCard, LayoutDashboard, LogOut, Menu, QrCode, ScanLine, Shield, Users, UsersRound, X } from 'lucide-react';
+import { Bell, CreditCard, LayoutDashboard, LogOut, Menu, QrCode, ScanLine, Shield, Users, UsersRound, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
@@ -21,6 +21,7 @@ const NAV: NavItem[] = [
   { href: '/dashboard', label: 'Resumen', icon: LayoutDashboard, roles: ['BUSINESS_OWNER'] },
   { href: '/dashboard/card', label: 'Marca y tarjeta', icon: CreditCard, roles: ['BUSINESS_OWNER'] },
   { href: '/dashboard/customers', label: 'Clientes', icon: Users, roles: ['BUSINESS_OWNER'] },
+  { href: '/dashboard/notifications', label: 'Notificaciones', icon: Bell, roles: ['BUSINESS_OWNER'] },
   { href: '/dashboard/scanner', label: 'Escáner', icon: ScanLine, roles: ['BUSINESS_OWNER', 'BUSINESS_STAFF'] },
   { href: '/dashboard/qr', label: 'QR de registro', icon: QrCode, roles: ['BUSINESS_OWNER'] },
   { href: '/dashboard/team', label: 'Equipo', icon: UsersRound, roles: ['BUSINESS_OWNER'] },

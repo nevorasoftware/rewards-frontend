@@ -191,3 +191,39 @@ export interface TeamMember {
   role: Role;
   createdAt: string;
 }
+
+export type NotificationKind = 'EARN' | 'REWARD' | 'REDEEM' | 'BROADCAST' | 'DIRECT';
+
+export interface NotificationSettings {
+  notifyOnEarn: boolean;
+  notifyOnReward: boolean;
+  notifyOnRedeem: boolean;
+}
+
+export interface WalletNotification {
+  id: string;
+  kind: NotificationKind;
+  title: string;
+  body: string;
+  recipients: number;
+  googleSent: number;
+  appleSent: number;
+  failed: number;
+  createdAt: string;
+  customer?: { id: string; name: string } | null;
+}
+
+export interface NotificationsOverview {
+  settings: NotificationSettings;
+  reachableCards: number;
+  googleConfigured: boolean;
+  items: WalletNotification[];
+}
+
+export interface DirectNotificationResult {
+  cards: number;
+  googleSent: number;
+  appleSent: number;
+  failed: number;
+  delivered: boolean;
+}

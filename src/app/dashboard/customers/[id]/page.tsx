@@ -1,11 +1,12 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Mail, Phone, SlidersHorizontal, Smartphone } from 'lucide-react';
+import { ArrowLeft, BellRing, Mail, Phone, SlidersHorizontal, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 import { use, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/app-shell';
+import { MessageForm } from '@/components/message-form';
 import { OwnerOnly } from '@/components/owner-only';
 import { StampGrid } from '@/components/stamp-grid';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/label';
 import { Badge, EmptyState, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/components/ui/misc';
 import { api } from '@/lib/api';
-import type { CustomerDetail, TransactionType } from '@/lib/types';
+import type { CustomerDetail, DirectNotificationResult, TransactionType } from '@/lib/types';
 import { formatDate, formatNumber } from '@/lib/utils';
 
 const TX_LABEL: Record<TransactionType, { label: string; variant: 'success' | 'default' | 'warning' }> = {
@@ -38,6 +39,22 @@ function Detail({ id }: { id: string }) {
   const [adjustSerial, setAdjustSerial] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [messageOpen, setMessageOpen] = useState(false);
+
+  const sendMessage = useMutation({
+    mutationFn: (input: { title: string; body: string }) =>
+      api<DirectNotificationResult>(`/notifications/customers/${id}`, { method: 'POST', body: input }),
+    onSuccess: (r) => {
+      if (r.delivered) {
+        const where = [r.googleSent ? 'Google Wallet' : null, r.appleSent ? 'Apple Wallet' : null].filter(Boolean).join(' y ');
+        toast.success('Mensaje enviado', { description: `Entregado en ${where}.` });
+        setMessageOpen(false);
+      } else {
+        toast.error('No se pudo entregar', { description: 'El cliente no tiene la tarjeta guardada en Google ni Apple Wallet.' });
+      }
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const adjust = useMutation({
     mutationFn: () =>
@@ -68,6 +85,7 @@ function Detail({ id }: { id: string }) {
   if (query.isLoading) return <Skeleton className="h-96" />;
   if (query.isError) return <p className="text-destructive">{query.error.message}</p>;
   const customer = query.data!;
+  const reachable = customer.cards.some((c) => c.status === 'ACTIVE' && (c.googleObjectId || c._count.appleRegistrations > 0));
 
   return (
     <>
@@ -86,6 +104,16 @@ function Detail({ id }: { id: string }) {
               <p className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" aria-hidden /> {customer.phone ?? 'Sin teléfono'}
               </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                disabled={!reachable}
+                title={reachable ? undefined : 'El cliente no tiene la tarjeta en su wallet'}
+                onClick={() => setMessageOpen(true)}
+              >
+                <BellRing aria-hidden /> Enviar notificación
+              </Button>
             </CardContent>
           </Card>
 
@@ -173,6 +201,21 @@ function Detail({ id }: { id: string }) {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={messageOpen} onOpenChange={setMessageOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Notificación para {customer.name}</DialogTitle>
+            <DialogDescription>Llega como aviso a su teléfono y queda guardada en su tarjeta.</DialogDescription>
+          </DialogHeader>
+          <MessageForm
+            idPrefix="direct"
+            submitLabel="Enviar"
+            loading={sendMessage.isPending}
+            onSubmit={(input, reset) => sendMessage.mutate(input, { onSuccess: (r) => r.delivered && reset() })}
+          />
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={Boolean(adjustSerial)} onOpenChange={(open) => !open && setAdjustSerial(null)}>
         <DialogContent>
