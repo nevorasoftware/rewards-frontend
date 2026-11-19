@@ -41,7 +41,7 @@ function Notifications() {
     queryFn: () => api<NotificationsOverview>('/notifications'),
     // Broadcast stats are filled in background: refresh while any is still at zero.
     refetchInterval: (q) =>
-      q.state.data?.items.some((n) => n.kind === 'BROADCAST' && n.googleSent + n.appleSent + n.failed < n.recipients) ? 4000 : false,
+      q.state.data?.items.some((n) => n.kind === 'BROADCAST' && n.googleSent + n.appleSent + n.webSent + n.failed < n.recipients) ? 4000 : false,
   });
 
   const settings = useMutation({
@@ -70,12 +70,17 @@ function Notifications() {
     <>
       <PageHeader
         title="Notificaciones"
-        description="Avisos que llegan al teléfono de tus clientes a través de su tarjeta en Google Wallet y Apple Wallet."
+        description="Avisos que llegan al teléfono de tus clientes: por su tarjeta en Google o Apple Wallet y como aviso del navegador si los activaron."
       />
 
       {data && !data.googleConfigured && (
         <p className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
           Google Wallet no está configurado en el servidor: los mensajes se guardan pero no llegan a los teléfonos.
+        </p>
+      )}
+      {data && !data.webPushConfigured && (
+        <p className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+          Los avisos del navegador no están configurados en el servidor (faltan las claves VAPID).
         </p>
       )}
 
@@ -132,7 +137,7 @@ function Notifications() {
                   </THead>
                   <TBody>
                     {data.items.map((n) => {
-                      const delivered = n.googleSent + n.appleSent;
+                      const delivered = n.googleSent + n.appleSent + n.webSent;
                       const pending = n.recipients - delivered - n.failed;
                       return (
                         <Tr key={n.id}>
@@ -164,7 +169,7 @@ function Notifications() {
           <CardHeader>
             <CardTitle>Mensaje a todos</CardTitle>
             <CardDescription>
-              {data ? `${data.reachableCards} cliente(s) con la tarjeta guardada en su wallet.` : 'Promociones, horarios o avisos.'}
+              {data ? `${data.reachableCards} cliente(s) con la tarjeta en su wallet o con avisos activados.` : 'Promociones, horarios o avisos.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -180,8 +185,8 @@ function Notifications() {
             />
             <p className="flex gap-2 text-xs text-muted-foreground">
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-              Google Wallet avisa como máximo 3 veces por tarjeta cada 24 horas (contando los avisos automáticos). Pasado ese límite el
-              mensaje igual queda en la tarjeta, pero sin sonar en el teléfono.
+              Los avisos del navegador muestran el mensaje completo. Google Wallet muestra “Mensaje nuevo” y avisa como máximo 3
+              veces por tarjeta cada 24 horas; pasado ese límite el mensaje queda en la tarjeta sin sonar.
             </p>
           </CardContent>
         </Card>

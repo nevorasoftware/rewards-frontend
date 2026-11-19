@@ -7,6 +7,7 @@ import { AppleWalletButton, GoogleWalletButton } from '@/components/wallet/walle
 import { api } from '@/lib/api';
 import { detectPlatform, type Platform } from '@/lib/device';
 import type { JoinResult } from '@/lib/types';
+import { PushOptIn } from './push-opt-in';
 
 const storageKey = (slug: string) => `rw.join.${slug}`;
 
@@ -130,6 +131,7 @@ export function JoinForm({ slug, businessName }: { slug: string; businessName: s
             </details>
           )}
         </div>
+        <PushOptIn slug={slug} serial={result.serialNumber} businessName={businessName} />
         {!links.googleConfigured && links.google && (
           <p className="mt-3 text-xs text-amber-700">Modo demostración: las credenciales de Google Wallet no están configuradas.</p>
         )}

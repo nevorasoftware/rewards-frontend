@@ -110,7 +110,7 @@ export interface CustomerDetail extends Omit<Customer, 'cards'> {
   cards: (CardSummary & {
     program: CardSummary['program'] & { rewardDescription: string };
     transactions: Transaction[];
-    _count: { appleRegistrations: number };
+    _count: { appleRegistrations: number; pushSubscriptions: number };
     googleObjectId: string | null;
   })[];
 }
@@ -208,6 +208,7 @@ export interface WalletNotification {
   recipients: number;
   googleSent: number;
   appleSent: number;
+  webSent: number;
   failed: number;
   createdAt: string;
   customer?: { id: string; name: string } | null;
@@ -217,6 +218,7 @@ export interface NotificationsOverview {
   settings: NotificationSettings;
   reachableCards: number;
   googleConfigured: boolean;
+  webPushConfigured: boolean;
   items: WalletNotification[];
 }
 
@@ -224,6 +226,7 @@ export interface DirectNotificationResult {
   cards: number;
   googleSent: number;
   appleSent: number;
+  webSent: number;
   failed: number;
   delivered: boolean;
 }

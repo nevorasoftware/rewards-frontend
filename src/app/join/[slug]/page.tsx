@@ -23,6 +23,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: { absolute: `${business.program.cardTitle || business.name} · Únete` },
     description: business.program.rewardDescription || `Programa de recompensas de ${business.name}`,
+    // Home-screen install (required on iPhone for browser notifications).
+    manifest: `/join/${encodeURIComponent(business.slug)}/manifest.webmanifest`,
+    appleWebApp: { capable: true, title: business.name, statusBarStyle: 'default' },
+    ...(business.iconUrl || business.logoUrl ? { icons: { apple: (business.iconUrl || business.logoUrl)! } } : {}),
   };
 }
 
